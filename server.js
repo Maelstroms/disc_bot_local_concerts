@@ -1,5 +1,3 @@
-//ODcxNTUyOTEyOTk0NzQyMzYz.YQc-5w.oRlwp2x6KWkQhZ_5NRvnEK4lu3Y
-
 const express = require('express');
 const app = express();
 const http = require('http').Server(app);
@@ -11,10 +9,14 @@ const cors = require('cors');
 const helmet = require('helmet');
 const PORT = 3000;
 
+// Require the necessary discord.js classes
+const { Client, Intents } = require('discord.js');
+const { token } = require('./config.json');
 
 // import modules in module folder
 //var helperMethods = require('./modules/helperMethods.js')
 
+//HTML helper packages
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
@@ -28,6 +30,16 @@ app.use(function (req, res, next) {
 });
 app.use(helmet());
 
+// Create a new discord client instance
+const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+
+// When the client is ready, run this code (only once)
+client.once('ready', () => {
+  console.log('Ready!');
+});
+
+// Login to Discord with your client's token
+client.login(token);
 
 //catch program closure
 //handy to make sure any background processes don't run indefinitely
