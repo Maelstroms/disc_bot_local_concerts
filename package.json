@@ -1,0 +1,30 @@
+{
+  "name": "disc_bot_local_concerts",
+  "version": "1.0.0",
+  "description": "Discord bot for telling you about concerts in your area and where your bands are playing",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Maelstroms/disc_bot_local_concerts.git"
+  },
+  "author": "Grant Merrill",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "discord.js": "^12.5.3",
+    "express": "^4.16.4",
+    "helmet": "^3.16.0",
+    "http": "0.0.0",
+    "ip": "^1.1.5"
+  },
+  "devDependencies": {
+    "mocha": "^9.2.1"
+  },
+  "bugs": {
+    "url": "https://github.com/Maelstroms/disc_bot_local_concerts/issues"
+  },
+  "homepage": "https://github.com/Maelstroms/disc_bot_local_concerts#readme"
+}
