@@ -1,19 +1,45 @@
 //Slash command section
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { REST } = require('@discordjs/rest');
-const { Routes } = require('discord-api-types/v9');
-const { clientId, guildId, token } = require('./config.json');
 
-const commands = [
-  new SlashCommandBuilder().setName('ping').setDescription('Replies with pong!'),
-  new SlashCommandBuilder().setName('server').setDescription('Replies with server info!'),
-  new SlashCommandBuilder().setName('user').setDescription('Replies with user info!'),
-]
-  .map(command => command.toJSON());
+/* 
+This file deploys slash commands. Any new commands need to be registered in this file 
+This is run separately from the server and should only get run when new or modified commands exist.
+TODO: Incorporate into testing and CI/CD so that the file does not need to get run manually 
 
-const rest = new REST({ version: '9' }).setToken(token);
 
-rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands })
-  .then(() => console.log('Successfully registered application commands.'))
-  .catch(console.error);
-//end slash commands
+*/
+const { REST, Routes } = require('discord.js');
+const { discclientId, discguildId, disctoken } = require('./config.json');
+const fs = require('node:fs');
+
+const path_to_commands = './modules/slash_commands/';
+
+const commands = [];
+// Grab all the command files from the commands directory you created earlier
+const commandFiles = fs.readdirSync(path_to_commands).filter(file => file.endsWith('.js'));
+
+// Grab the SlashCommandBuilder#toJSON() output of each command's data for deployment
+for (const file of commandFiles) {
+  const command = require(path_to_commands + file);
+  commands.push(command.data.toJSON());
+}
+
+// Construct and prepare an instance of the REST module
+const rest = new REST({ version: '10' }).setToken(disctoken);
+
+// and deploy your commands!
+(async () => {
+  try {
+    console.log(`Started refreshing ${commands.length} application (/) commands.`);
+
+    // The put method is used to fully refresh all commands in the guild with the current set
+    const data = await rest.put(
+      Routes.applicationGuildCommands(discclientId, discguildId),
+      { body: commands },
+    );
+
+    console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+  } catch (error) {
+    // And of course, make sure you catch and log any errors!
+    console.error(error);
+  }
+})();

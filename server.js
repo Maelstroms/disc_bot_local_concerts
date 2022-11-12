@@ -1,45 +1,49 @@
-const { Client, Intents } = require('discord.js');
-const { token } = require('./config.json');
+const fs = require('node:fs');
+const path = require('node:path');
+const { Client, Events, Collection, GatewayIntentBits } = require('discord.js');
+const { disctoken } = require('./config.json');
+
+
+
 
 // Create a new discord client instance
 const client = new Client({ 
   intents: [
-  Intents.FLAGS.GUILDS,
-  Intents.FLAGS.GUILD_MESSAGES
+  GatewayIntentBits.Guilds
   ] }); 
 
-client.on('ready', () => {
-  console.log('bot has started');
-})
-
-client.on('messageCreate', (message) => {
-  console.log(message.content);
-  if (message.content === 'ping'){
-    console.log('correct message');
-    message.reply({
-      content: 'pong'
-    })
-  }
-})
-
-/*Serious version issues, This command is highly dependent on permissions and discord.js version
-Make sure discord.js v13.6 or more is running
-Bot and applications.commands scopes in the bot
-check the flags. v13 does the Intents.Flags.thing pattern, will just fail silently if on a different version
+/*
+Remember when creating new slash commands that rerunning deploy-commands.js is necessary.
+Any commands that aren't registered via rest call will be ignored.
 */
-client.on('interactionCreate', async interaction => {
-  console.log('command received');
-  if (!interaction.isCommand()) return;
 
-  const { commandName } = interaction;
+client.commands = new Collection();
+const commandsPath = path.join(__dirname, 'modules/slash_commands');
+const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
 
-  if (commandName === 'ping') {
-    await interaction.reply('Pong!');
-  } else if (commandName === 'server') {
-    await interaction.reply(`Server name: ${interaction.guild.name}\nTotal members: ${interaction.guild.memberCount}`);
-  } else if (commandName === 'user') {
-    await interaction.reply(`Your tag: ${interaction.user.tag}\nYour id: ${interaction.user.id}`);
+for (const file of commandFiles) {
+  const filePath = path.join(commandsPath, file);
+  const command = require(filePath);
+  client.commands.set(command.data.name, command);
+}
+
+client.once(Events.ClientReady, () => {
+  console.log('Ready!');
+});
+
+client.on(Events.InteractionCreate, async interaction => {
+  if (!interaction.isChatInputCommand()) return;
+
+  const command = client.commands.get(interaction.commandName);
+
+  if (!command) return;
+
+  try {
+    await command.execute(interaction);
+  } catch (error) {
+    console.error(error);
+    await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
   }
 });
 
-client.login(token);
+client.login(disctoken);
