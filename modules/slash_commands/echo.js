@@ -1,4 +1,6 @@
-		const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
+//const events_search = require(../ticket) 
+
 
 module.exports = {
 	data : new SlashCommandBuilder()
@@ -10,6 +12,7 @@ module.exports = {
 	async execute(interaction) {
 		console.log(interaction.options.getString('input'));
 		const input = interaction.options.getString('input')
+
 		//interaction.options.getString('reason')
 		await interaction.reply(`I got ${input} as a command.`);
 	},
